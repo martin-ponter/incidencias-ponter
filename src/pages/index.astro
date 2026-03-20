@@ -2,11 +2,13 @@
 import "../styles/global.css";
 
 const tipos = [
-  { value: "office", label: "Problema con Office" },
-  { value: "bitrix", label: "Problema con Bitrix" },
-  { value: "hardware", label: "Problema de hardware" },
-  { value: "correo", label: "Problema con correo" },
-  { value: "otro", label: "Otro" },
+  { value: "email_office", label: "Problema con email de Office" },
+  { value: "carpetas", label: "Problema con acceso a carpetas compartidas" },
+  { value: "meetphone", label: "Problema con teléfono meetphone" },
+  { value: "impresora", label: "Problema con impresora/escaner" },
+  { value: "redes", label: "Problema con redes/internet" },
+  { value: "config_usuario", label: "Problema con configuración de usuario" },
+  { value: "remoto", label: "Problema con escritorio/servidor remoto" },
 ];
 
 const prioridades = ["Baja", "Media", "Alta"];
@@ -16,7 +18,9 @@ const prioridades = ["Baja", "Media", "Alta"];
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Portal de incidencias</title>
+    <title>Portal de incidencias Ponter</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/png" href="/LogoPonter_Verde.png" />
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-900">
     <main class="px-4 py-10">
@@ -26,6 +30,9 @@ const prioridades = ["Baja", "Media", "Alta"];
           <p class="mt-2 text-sm text-slate-600">
             Rellena el formulario y se enviará automáticamente al soporte correspondiente,
             con copia para ti y para el revisor interno.
+          </p>
+          <p class="mt-3 text-sm font-medium text-amber-700">
+            * Si tu incidencia es con Quantum o con a3, debes abrir un ticket desde la aplicación.
           </p>
         </div>
 
@@ -56,6 +63,16 @@ const prioridades = ["Baja", "Media", "Alta"];
 
           <div class="grid gap-4 md:grid-cols-2">
             <div>
+              <label for="telefono" class="mb-1 block text-sm font-medium">Teléfono de contacto</label>
+              <input
+                id="telefono"
+                name="telefono"
+                type="text"
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
+              />
+            </div>
+
+            <div>
               <label for="departamento" class="mb-1 block text-sm font-medium">Departamento</label>
               <input
                 id="departamento"
@@ -64,21 +81,21 @@ const prioridades = ["Baja", "Media", "Alta"];
                 class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
               />
             </div>
+          </div>
 
-            <div>
-              <label for="tipo" class="mb-1 block text-sm font-medium">Tipo de incidencia *</label>
-              <select
-                id="tipo"
-                name="tipo"
-                required
-                class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
-              >
-                <option value="">Selecciona una opción</option>
-                {tipos.map((tipo) => (
-                  <option value={tipo.value}>{tipo.label}</option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label for="tipo" class="mb-1 block text-sm font-medium">Tipo de incidencia *</label>
+            <select
+              id="tipo"
+              name="tipo"
+              required
+              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
+            >
+              <option value="">Selecciona una opción</option>
+              {tipos.map((tipo) => (
+                <option value={tipo.value}>{tipo.label}</option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -92,6 +109,16 @@ const prioridades = ["Baja", "Media", "Alta"];
                 <option value={prioridad}>{prioridad}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label for="anydesk" class="mb-1 block text-sm font-medium">Número de AnyDesk</label>
+            <input
+              id="anydesk"
+              name="anydesk"
+              type="text"
+              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
+            />
           </div>
 
           <div>
@@ -114,6 +141,18 @@ const prioridades = ["Baja", "Media", "Alta"];
               rows="7"
               class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
             ></textarea>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input
+              id="colectiva"
+              name="colectiva"
+              type="checkbox"
+              class="h-4 w-4"
+            />
+            <label for="colectiva" class="text-sm font-medium">
+              Incidencia colectiva
+            </label>
           </div>
 
           <div class="hidden">
@@ -154,11 +193,14 @@ const prioridades = ["Baja", "Media", "Alta"];
         const payload = {
           nombre: formData.get("nombre"),
           email: formData.get("email"),
+          telefono: formData.get("telefono"),
           departamento: formData.get("departamento"),
           tipo: formData.get("tipo"),
           prioridad: formData.get("prioridad"),
           asunto: formData.get("asunto"),
           descripcion: formData.get("descripcion"),
+          anydesk: formData.get("anydesk"),
+          colectiva: formData.get("colectiva") === "on",
           website: formData.get("website"),
         };
 
