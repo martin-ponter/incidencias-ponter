@@ -25,16 +25,13 @@ type Env = {
   SUPPORT_REDES?: string;
   SUPPORT_CONFIG_USUARIO?: string;
   SUPPORT_REMOTO?: string;
-
   ALLOWED_EMAIL_DOMAIN?: string;
   INTERNAL_REVIEWER_EMAIL?: string;
-
   SMTP_HOST?: string;
   SMTP_PORT?: string;
   SMTP_USER?: string;
   SMTP_PASS?: string;
   SMTP_FROM?: string;
-
   BITRIX_WEBHOOK_URL?: string;
   BITRIX_ENTITY_TYPE_ID?: string;
 };
@@ -81,10 +78,7 @@ const BITRIX_ENUMS_PRIORIDAD: Record<string, string> = {
   alta: "4791",
 };
 
-const EMAIL_INTRO_TEXT = `Buenos días,
-
-Les notificamos la siguiente incidencia por la que solicitamos su asistencia:
-`;
+const EMAIL_INTRO_TEXT = `Buenos días, Les notificamos la siguiente incidencia por la que solicitamos su asistencia: `;
 
 const EMAIL_INTRO_HTML = `
   <p>Buenos días,</p>
@@ -117,6 +111,7 @@ function terminaConDominio(email: string, dominio: string): boolean {
 
 function valorBooleano(valor: unknown): boolean {
   if (typeof valor === "boolean") return valor;
+
   if (typeof valor === "string") {
     const normalizado = valor.trim().toLowerCase();
     return (
@@ -127,17 +122,54 @@ function valorBooleano(valor: unknown): boolean {
       normalizado === "si"
     );
   }
+
   if (typeof valor === "number") return valor === 1;
+
   return false;
 }
 
-async function crearIncidenciaEnBitrix(params: any): Promise<void> {
+async function crearIncidenciaEnBitrix(params: {
+  ticketId: string;
+  nombre: string;
+  email: string;
+  telefono: string;
+  departamento: string;
+  tipo: string;
+  prioridad: string;
+  asunto: string;
+  descripcion: string;
+  anydesk: string;
+  colectiva: boolean;
+  soporteDestino: string;
+}): Promise<void> {
   const webhookUrl = String(env.BITRIX_WEBHOOK_URL ?? "").trim();
   const entityTypeId = Number(env.BITRIX_ENTITY_TYPE_ID ?? 0);
 
   if (!webhookUrl || !entityTypeId) {
-    throw new Error("Faltan variables Bitrix");
+    throw new Error(
+      "Faltan BITRIX_WEBHOOK_URL o BITRIX_ENTITY_TYPE_ID en el .env."
+    );
   }
+
+  const prioridadNormalizada = params.prioridad.trim().toLowerCase();
+  const tipoEnumId = BITRIX_ENUMS_TIPO[params.tipo];
+  const prioridadEnumId = BITRIX_ENUMS_PRIORIDAD[prioridadNormalizada];
+
+  if (!tipoEnumId) {
+    throw new Error(`No existe mapeo Bitrix para el tipo "${params.tipo}".`);
+  }
+
+  if (params.prioridad && !prioridadEnumId) {
+    throw new Error(
+      `No existe mapeo Bitrix para la prioridad "${params.prioridad}".`
+    );
+  }
+
+  const descripcionBitrix = [
+    params.descripcion,
+    "",
+    `Número de AnyDesk: ${params.anydesk || "No indicado"}`,
+  ].join("\n");
 
   const payload = {
     entityTypeId,
@@ -148,47 +180,43 @@ async function crearIncidenciaEnBitrix(params: any): Promise<void> {
       [BITRIX_FIELDS.email]: params.email,
       [BITRIX_FIELDS.telefono]: params.telefono || "",
       [BITRIX_FIELDS.departamento]: params.departamento || "",
-      [BITRIX_FIELDS.tipo]: BITRIX_ENUMS_TIPO[params.tipo],
-      [BITRIX_FIELDS.prioridad]:
-        BITRIX_ENUMS_PRIORIDAD[params.prioridad?.toLowerCase()] || null,
+      [BITRIX_FIELDS.tipo]: tipoEnumId,
+      [BITRIX_FIELDS.prioridad]: prioridadEnumId || null,
       [BITRIX_FIELDS.colectiva]: params.colectiva ? 1 : 0,
       [BITRIX_FIELDS.asunto]: params.asunto,
-      [BITRIX_FIELDS.descripcion]: params.descripcion,
+      [BITRIX_FIELDS.descripcion]: descripcionBitrix,
       [BITRIX_FIELDS.ticketIdExterno]: params.ticketId,
       [BITRIX_FIELDS.emailSoporteDestino]: params.soporteDestino,
+      xmlId: params.ticketId,
     },
   };
 
-  await fetch(`${webhookUrl}crm.item.add.json`, {
+  const response = await fetch(`${webhookUrl}crm.item.add.json`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(payload),
   });
+
+  const data = await response.json();
+
+  if (!response.ok || data?.error) {
+    throw new Error(
+      data?.error_description ||
+        data?.error ||
+        "Bitrix no pudo crear la incidencia."
+    );
+  }
 }
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
-    const session = cookies.get("bitrix_user");
-
-    if (!session) {
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          error: "Acceso no autorizado (solo desde Bitrix)",
-        }),
-        { status: 401 }
-      );
-    }
-
-    const user = JSON.parse(session.value);
-
     const { default: nodemailer } = await import("nodemailer");
     const body = (await request.json()) as IncidenciaBody;
 
-    // 🔐 SOLO confiar en Bitrix
-    const nombre = user.nombre;
-    const email = user.email;
-
+    const nombre = String(body.nombre ?? "").trim();
+    const email = String(body.email ?? "").trim().toLowerCase();
     const telefono = String(body.telefono ?? "").trim();
     const departamento = String(body.departamento ?? "").trim();
     const tipo = String(body.tipo ?? "").trim().toLowerCase();
@@ -197,45 +225,168 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const descripcion = String(body.descripcion ?? "").trim();
     const anydesk = String(body.anydesk ?? "").trim();
     const colectiva = valorBooleano(body.colectiva);
+    const honeypot = String(body.website ?? "").trim();
 
-    if (!tipo || !asunto || !descripcion) {
-      return new Response(JSON.stringify({ ok: false, error: "Campos faltantes" }), { status: 400 });
+    if (honeypot) {
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (!nombre || !email || !tipo || !asunto || !descripcion) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Faltan campos obligatorios.",
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!emailValido(email)) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "El email no es válido.",
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const dominioPermitido = String(env.ALLOWED_EMAIL_DOMAIN ?? "")
+      .trim()
+      .toLowerCase();
+
+    if (dominioPermitido && !terminaConDominio(email, dominioPermitido)) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: `Debes usar tu correo corporativo @${dominioPermitido}.`,
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     const soporteDestino = SUPPORT_MAP[tipo];
 
     if (!soporteDestino) {
-      return new Response(JSON.stringify({ ok: false, error: "Tipo inválido" }), { status: 400 });
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Tipo de incidencia no válido.",
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const reviewerEmail = String(env.INTERNAL_REVIEWER_EMAIL ?? "").trim();
+    const smtpHost = String(env.SMTP_HOST ?? "").trim();
+    const smtpPort = Number(env.SMTP_PORT ?? 587);
+    const smtpUser = String(env.SMTP_USER ?? "").trim();
+    const smtpPass = String(env.SMTP_PASS ?? "").trim();
+    const smtpFrom = String(env.SMTP_FROM ?? "").trim();
+
+    if (!smtpHost || !smtpUser || !smtpPass || !smtpFrom) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Faltan variables SMTP en el .env.",
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     const ticketId = generarTicketId();
 
     const transporter: Transporter = nodemailer.createTransport({
-      host: env.SMTP_HOST,
-      port: Number(env.SMTP_PORT ?? 587),
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
       auth: {
-        user: env.SMTP_USER,
-        pass: env.SMTP_PASS,
+        user: smtpUser,
+        pass: smtpPass,
       },
     });
 
+    const asuntoSeguro = escapeHtml(asunto);
+    const nombreSeguro = escapeHtml(nombre);
+    const emailSeguro = escapeHtml(email);
+    const telefonoSeguro = escapeHtml(telefono || "No indicado");
+    const departamentoSeguro = escapeHtml(departamento || "No indicado");
+    const tipoSeguro = escapeHtml(tipo);
+    const prioridadSegura = escapeHtml(prioridad || "No indicada");
+    const colectivaSegura = colectiva ? "Sí" : "No";
+    const anydeskSeguro = escapeHtml(anydesk || "No indicado");
+    const descripcionSegura = escapeHtml(descripcion).replace(/\n/g, "<br>");
+
+    const subject = `${colectiva ? "[COLECTIVA] " : ""}[${ticketId}] ${asunto}`;
+
     const text = `
 ${EMAIL_INTRO_TEXT}
-
 ID: ${ticketId}
 Nombre: ${nombre}
 Email: ${email}
-Teléfono: ${telefono}
-Departamento: ${departamento}
+Teléfono de contacto: ${telefono || "No indicado"}
+Departamento: ${departamento || "No indicado"}
+Tipo: ${tipo}
+Prioridad: ${prioridad || "No indicada"}
+Colectiva: ${colectiva ? "Sí" : "No"}
+Número de AnyDesk: ${anydesk || "No indicado"}
+Asunto: ${asunto}
+Descripción: ${descripcion}
+    `.trim();
 
-${descripcion}
-`;
+    const html = `
+<div style="font-family: Arial, sans-serif; line-height: 1.5;">
+  ${EMAIL_INTRO_HTML}
+  <h2>Nueva incidencia recibida</h2>
+  ${
+    colectiva
+      ? `<p style="color:#b91c1c; font-weight:bold;">⚠ Incidencia colectiva</p>`
+      : ""
+  }
+  <p><strong>ID:</strong> ${ticketId}</p>
+  <p><strong>Nombre:</strong> ${nombreSeguro}</p>
+  <p><strong>Email:</strong> ${emailSeguro}</p>
+  <p><strong>Teléfono de contacto:</strong> ${telefonoSeguro}</p>
+  <p><strong>Departamento:</strong> ${departamentoSeguro}</p>
+  <p><strong>Tipo:</strong> ${tipoSeguro}</p>
+  <p><strong>Prioridad:</strong> ${prioridadSegura}</p>
+  <p><strong>Colectiva:</strong> ${colectivaSegura}</p>
+  <p><strong>Número de AnyDesk:</strong> ${anydeskSeguro}</p>
+  <p><strong>Asunto:</strong> ${asuntoSeguro}</p>
+  <p><strong>Descripción:</strong></p>
+  <p>${descripcionSegura}</p>
+</div>
+    `;
+
+    const ccList = [email, reviewerEmail].filter(Boolean).join(", ");
+    const replyToList = [email, reviewerEmail].filter(Boolean).join(", ");
 
     await transporter.sendMail({
-      from: env.SMTP_FROM,
+      from: `"Portal de Incidencias" <${smtpFrom}>`,
       to: soporteDestino,
-      subject: `[${ticketId}] ${asunto}`,
+      cc: ccList || undefined,
+      replyTo: replyToList || undefined,
+      subject,
       text,
+      html,
     });
 
     await crearIncidenciaEnBitrix({
@@ -253,9 +404,25 @@ ${descripcion}
       soporteDestino,
     });
 
-    return new Response(JSON.stringify({ ok: true, ticketId }));
+    return new Response(JSON.stringify({ ok: true, ticketId }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Error enviando incidencia:", error);
 
-  } catch (e: any) {
-    return new Response(JSON.stringify({ ok: false, error: e.message }), { status: 500 });
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "No se pudo enviar la incidencia.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 };
