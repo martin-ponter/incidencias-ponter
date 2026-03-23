@@ -51,6 +51,13 @@ const prioridades = ["Baja", "Media", "Alta"];
           >
             Debes acceder a este formulario desde Bitrix.
           </div>
+
+          <div
+            id="loading-status"
+            class="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600"
+          >
+            Validando acceso desde Bitrix...
+          </div>
         </div>
 
         <form id="incidencia-form" class="space-y-4">
@@ -206,6 +213,7 @@ const prioridades = ["Baja", "Media", "Alta"];
             <button
               id="btn-enviar"
               type="submit"
+              disabled
               class="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Enviar incidencia
@@ -217,27 +225,53 @@ const prioridades = ["Baja", "Media", "Alta"];
       </div>
     </main>
 
-    <script>
+    <script type="module">
       import { initializeB24Frame } from "@bitrix24/b24jssdk";
 
       const form = document.getElementById("incidencia-form");
       const estado = document.getElementById("estado");
       const boton = document.getElementById("btn-enviar");
       const status = document.getElementById("bitrix-status");
+      const loadingStatus = document.getElementById("loading-status");
 
       const nombreInput = document.getElementById("nombre");
       const emailInput = document.getElementById("email");
 
       let autorizado = false;
 
+      function setUnauthorized(message) {
+        autorizado = false;
+        boton.disabled = true;
+        status.classList.remove("hidden");
+        status.textContent = message;
+        loadingStatus.classList.add("hidden");
+        estado.textContent = "";
+      }
+
+      function setAuthorized() {
+        autorizado = true;
+        boton.disabled = false;
+        status.classList.add("hidden");
+        loadingStatus.classList.add("hidden");
+      }
+
       async function inicializarBitrix() {
         try {
           const $b24 = await initializeB24Frame();
-          const response = await $b24.callMethod("user.current", {});
-          const user = response.getData().result;
 
-          const nombre = [user.NAME, user.LAST_NAME].filter(Boolean).join(" ").trim();
-          const email = user.EMAIL || "";
+          // Comprueba si la app está instalada del todo
+          const appInfoResponse = await $b24.callMethod("app.info", {});
+          const appInfo = appInfoResponse.getData()?.result || {};
+
+          if (appInfo.INSTALLED === false) {
+            await $b24.installFinish();
+          }
+
+          const userResponse = await $b24.callMethod("user.current", {});
+          const user = userResponse.getData()?.result;
+
+          const nombre = [user?.NAME, user?.LAST_NAME].filter(Boolean).join(" ").trim();
+          const email = user?.EMAIL || "";
 
           if (!nombre || !email) {
             throw new Error("No se ha podido obtener el usuario de Bitrix.");
@@ -263,13 +297,10 @@ const prioridades = ["Baja", "Media", "Alta"];
             throw new Error(authData.error || "No se pudo validar la sesión de Bitrix.");
           }
 
-          autorizado = true;
-          status.classList.add("hidden");
+          setAuthorized();
         } catch (error) {
           console.error("Error inicializando Bitrix:", error);
-          autorizado = false;
-          boton.disabled = true;
-          status.classList.remove("hidden");
+          setUnauthorized("Debes acceder a este formulario desde la aplicación de Bitrix ya instalada.");
           estado.textContent = "Acceso disponible solo desde Bitrix.";
           estado.className = "text-sm text-red-700";
         }
@@ -334,7 +365,7 @@ const prioridades = ["Baja", "Media", "Alta"];
           estado.textContent = error?.message || "Error al enviar la incidencia.";
           estado.className = "text-sm text-red-700";
         } finally {
-          boton.disabled = false;
+          boton.disabled = !autorizado;
           boton.textContent = "Enviar incidencia";
         }
       });
