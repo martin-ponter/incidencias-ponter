@@ -24,37 +24,39 @@ const prioridades = ["Baja", "Media", "Alta"];
   </head>
 
   <body class="min-h-screen bg-slate-100 text-slate-900">
-    <main class="px-4 py-10">
-      <div class="mx-auto max-w-3xl rounded-2xl bg-white p-6 shadow-lg md:p-8">
-        
-        <!-- HEADER -->
+    <main class="px-4 py-6 md:px-6 md:py-10">
+      <div class="mx-auto max-w-3xl rounded-2xl bg-white p-5 shadow-lg md:p-8">
         <div class="mb-6">
-          <h1 class="text-2xl font-bold md:text-3xl">
-            Portal de incidencias
-          </h1>
+          <div class="flex items-start gap-3">
+            <img
+              src="/LogoPonter_Verde.png"
+              alt="Ponter"
+              class="h-10 w-10 rounded-lg object-contain"
+            />
+            <div>
+              <h1 class="text-2xl font-bold md:text-3xl">Portal de incidencias</h1>
+              <p class="mt-2 text-sm text-slate-600">
+                Rellena el formulario y se enviará automáticamente al soporte correspondiente,
+                con copia para ti y para el revisor interno.
+              </p>
+              <p class="mt-3 text-sm font-medium text-amber-700">
+                * Si tu incidencia es con Quantum o con a3, debes abrir un ticket desde la aplicación.
+              </p>
+            </div>
+          </div>
 
-          <p class="mt-2 text-sm text-slate-600">
-            Rellena el formulario y se enviará automáticamente al soporte correspondiente,
-            con copia para ti y para el revisor interno.
-          </p>
-
-          <p class="mt-3 text-sm font-medium text-amber-700">
-            * Si tu incidencia es con Quantum o con a3, debes abrir un ticket desde la aplicación.
-          </p>
-
-          <!-- aviso auth -->
-          <p id="bitrix-status" class="mt-2 text-sm text-red-600 hidden">
-            Debes acceder desde Bitrix para usar este formulario.
-          </p>
+          <div
+            id="bitrix-status"
+            class="mt-4 hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
+            Debes acceder a este formulario desde Bitrix.
+          </div>
         </div>
 
-        <!-- FORM -->
         <form id="incidencia-form" class="space-y-4">
-
-          <!-- NOMBRE + EMAIL -->
           <div class="grid gap-4 md:grid-cols-2">
             <div>
-              <label class="mb-1 block text-sm font-medium">
+              <label for="nombre" class="mb-1 block text-sm font-medium">
                 Nombre completo *
               </label>
               <input
@@ -63,12 +65,12 @@ const prioridades = ["Baja", "Media", "Alta"];
                 type="text"
                 required
                 readonly
-                class="w-full rounded-xl border border-slate-300 bg-slate-100 px-4 py-3 outline-none"
+                class="w-full rounded-xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-700 outline-none"
               />
             </div>
 
             <div>
-              <label class="mb-1 block text-sm font-medium">
+              <label for="email" class="mb-1 block text-sm font-medium">
                 Email corporativo *
               </label>
               <input
@@ -77,58 +79,134 @@ const prioridades = ["Baja", "Media", "Alta"];
                 type="email"
                 required
                 readonly
-                class="w-full rounded-xl border border-slate-300 bg-slate-100 px-4 py-3 outline-none"
+                class="w-full rounded-xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-700 outline-none"
               />
             </div>
           </div>
 
-          <!-- TELEFONO + DEPARTAMENTO -->
           <div class="grid gap-4 md:grid-cols-2">
-            <input id="telefono" name="telefono" placeholder="Teléfono" class="input" />
-            <input id="departamento" name="departamento" placeholder="Departamento" class="input" />
+            <div>
+              <label for="telefono" class="mb-1 block text-sm font-medium">
+                Teléfono de contacto
+              </label>
+              <input
+                id="telefono"
+                name="telefono"
+                type="text"
+                placeholder="Introduce tu teléfono"
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+              />
+            </div>
+
+            <div>
+              <label for="departamento" class="mb-1 block text-sm font-medium">
+                Departamento
+              </label>
+              <input
+                id="departamento"
+                name="departamento"
+                type="text"
+                placeholder="Introduce tu departamento"
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+              />
+            </div>
           </div>
 
-          <!-- TIPO -->
-          <select id="tipo" name="tipo" required class="input">
-            <option value="">Selecciona una opción</option>
-            {tipos.map((t) => (
-              <option value={t.value}>{t.label}</option>
-            ))}
-          </select>
-
-          <!-- PRIORIDAD -->
-          <select id="prioridad" name="prioridad" class="input">
-            {prioridades.map((p) => (
-              <option value={p}>{p}</option>
-            ))}
-          </select>
-
-          <!-- ANYDESK -->
-          <input id="anydesk" name="anydesk" placeholder="Número de AnyDesk" class="input" />
-
-          <!-- ASUNTO -->
-          <input id="asunto" name="asunto" placeholder="Asunto *" required class="input" />
-
-          <!-- DESCRIPCIÓN -->
-          <textarea id="descripcion" name="descripcion" rows="6" required class="input"></textarea>
-
-          <!-- CHECK -->
-          <div class="flex items-center gap-2">
-            <input id="colectiva" name="colectiva" type="checkbox" />
-            <label>Incidencia colectiva</label>
+          <div>
+            <label for="tipo" class="mb-1 block text-sm font-medium">
+              Tipo de incidencia *
+            </label>
+            <select
+              id="tipo"
+              name="tipo"
+              required
+              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+            >
+              <option value="">Selecciona una opción</option>
+              {tipos.map((t) => (
+                <option value={t.value}>{t.label}</option>
+              ))}
+            </select>
           </div>
 
-          <!-- HONEYPOT -->
+          <div>
+            <label for="prioridad" class="mb-1 block text-sm font-medium">
+              Prioridad
+            </label>
+            <select
+              id="prioridad"
+              name="prioridad"
+              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+            >
+              {prioridades.map((p) => (
+                <option value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label for="anydesk" class="mb-1 block text-sm font-medium">
+              Número de AnyDesk
+            </label>
+            <input
+              id="anydesk"
+              name="anydesk"
+              type="text"
+              placeholder="Introduce el número de AnyDesk"
+              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+            />
+          </div>
+
+          <div>
+            <label for="asunto" class="mb-1 block text-sm font-medium">
+              Asunto *
+            </label>
+            <input
+              id="asunto"
+              name="asunto"
+              type="text"
+              required
+              placeholder="Resume brevemente la incidencia"
+              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+            />
+          </div>
+
+          <div>
+            <label for="descripcion" class="mb-1 block text-sm font-medium">
+              Descripción *
+            </label>
+            <textarea
+              id="descripcion"
+              name="descripcion"
+              rows="6"
+              required
+              placeholder="Describe la incidencia con el mayor detalle posible"
+              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+            ></textarea>
+          </div>
+
+          <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <input
+              id="colectiva"
+              name="colectiva"
+              type="checkbox"
+              class="h-4 w-4 rounded border-slate-300"
+            />
+            <label for="colectiva" class="text-sm font-medium text-slate-700">
+              Incidencia colectiva
+            </label>
+          </div>
+
           <div class="hidden">
-            <input id="website" name="website" type="text" />
+            <label for="website">Website</label>
+            <input id="website" name="website" type="text" autocomplete="off" />
           </div>
 
-          <!-- BOTÓN -->
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
             <button
               id="btn-enviar"
               type="submit"
-              class="rounded-xl bg-slate-900 px-5 py-3 text-white"
+              class="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Enviar incidencia
             </button>
@@ -139,57 +217,77 @@ const prioridades = ["Baja", "Media", "Alta"];
       </div>
     </main>
 
-    <!-- BITRIX SDK -->
-    <script src="https://api.bitrix24.com/api/v1/"></script>
+    <script>
+      import { initializeB24Frame } from "@bitrix24/b24jssdk";
 
-    <script is:inline>
       const form = document.getElementById("incidencia-form");
       const estado = document.getElementById("estado");
       const boton = document.getElementById("btn-enviar");
       const status = document.getElementById("bitrix-status");
 
+      const nombreInput = document.getElementById("nombre");
+      const emailInput = document.getElementById("email");
+
       let autorizado = false;
 
-      // INIT BITRIX
-      BX24.init(() => {
-        BX24.callMethod("user.current", async (res) => {
-          if (res.error()) {
-            status.classList.remove("hidden");
-            boton.disabled = true;
-            return;
+      async function inicializarBitrix() {
+        try {
+          const $b24 = await initializeB24Frame();
+          const response = await $b24.callMethod("user.current", {});
+          const user = response.getData().result;
+
+          const nombre = [user.NAME, user.LAST_NAME].filter(Boolean).join(" ").trim();
+          const email = user.EMAIL || "";
+
+          if (!nombre || !email) {
+            throw new Error("No se ha podido obtener el usuario de Bitrix.");
           }
 
-          const user = res.data();
+          nombreInput.value = nombre;
+          emailInput.value = email;
 
-          document.getElementById("nombre").value =
-            user.NAME + " " + user.LAST_NAME;
-
-          document.getElementById("email").value = user.EMAIL;
-
-          autorizado = true;
-
-          // 🔐 sesión backend
-          await fetch("/api/bitrix-auth", {
+          const authRes = await fetch("/api/bitrix-auth", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+            },
             body: JSON.stringify({
-              nombre: user.NAME + " " + user.LAST_NAME,
-              email: user.EMAIL,
+              nombre,
+              email,
             }),
           });
-        });
-      });
 
-      // SUBMIT
+          const authData = await authRes.json();
+
+          if (!authRes.ok || !authData.ok) {
+            throw new Error(authData.error || "No se pudo validar la sesión de Bitrix.");
+          }
+
+          autorizado = true;
+          status.classList.add("hidden");
+        } catch (error) {
+          console.error("Error inicializando Bitrix:", error);
+          autorizado = false;
+          boton.disabled = true;
+          status.classList.remove("hidden");
+          estado.textContent = "Acceso disponible solo desde Bitrix.";
+          estado.className = "text-sm text-red-700";
+        }
+      }
+
+      inicializarBitrix();
+
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         if (!autorizado) {
           estado.textContent = "No autorizado";
-          estado.className = "text-red-600";
+          estado.className = "text-sm text-red-700";
           return;
         }
 
+        estado.textContent = "";
+        estado.className = "text-sm";
         boton.disabled = true;
         boton.textContent = "Enviando...";
 
@@ -210,36 +308,36 @@ const prioridades = ["Baja", "Media", "Alta"];
         try {
           const res = await fetch("/api/incidencia", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+            },
             body: JSON.stringify(payload),
           });
 
           const data = await res.json();
 
-          if (!data.ok) throw new Error(data.error);
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || "No se pudo enviar la incidencia.");
+          }
 
-          estado.textContent = "Incidencia enviada ID: " + data.ticketId;
-          estado.className = "text-green-700";
+          estado.textContent = `Incidencia enviada correctamente. ID: ${data.ticketId}`;
+          estado.className = "text-sm text-green-700";
+
+          const nombreActual = nombreInput.value;
+          const emailActual = emailInput.value;
 
           form.reset();
-        } catch (e) {
-          estado.textContent = e.message;
-          estado.className = "text-red-700";
-        }
 
-        boton.disabled = false;
-        boton.textContent = "Enviar incidencia";
+          nombreInput.value = nombreActual;
+          emailInput.value = emailActual;
+        } catch (error) {
+          estado.textContent = error?.message || "Error al enviar la incidencia.";
+          estado.className = "text-sm text-red-700";
+        } finally {
+          boton.disabled = false;
+          boton.textContent = "Enviar incidencia";
+        }
       });
     </script>
-
-    <style>
-      .input {
-        width: 100%;
-        border: 1px solid #cbd5f5;
-        border-radius: 12px;
-        padding: 12px;
-      }
-    </style>
-
   </body>
 </html>
