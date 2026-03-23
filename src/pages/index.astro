@@ -15,221 +15,135 @@ const prioridades = ["Baja", "Media", "Alta"];
 ---
 
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Portal de incidencias Ponter</title>
-    <meta name="robots" content="noindex, nofollow" />
-    <link rel="icon" type="image/png" href="/LogoPonter_Verde.png" />
-  </head>
-  <body class="min-h-screen bg-slate-100 text-slate-900">
-    <main class="px-4 py-10">
-      <div class="mx-auto max-w-3xl rounded-2xl bg-white p-6 shadow-lg md:p-8">
-        <div class="mb-6">
-          <h1 class="text-2xl font-bold md:text-3xl">Portal de incidencias</h1>
-          <p class="mt-2 text-sm text-slate-600">
-            Rellena el formulario y se enviará automáticamente al soporte correspondiente,
-            con copia para ti y para el revisor interno.
-          </p>
-          <p class="mt-3 text-sm font-medium text-amber-700">
-            * Si tu incidencia es con Quantum o con a3, debes abrir un ticket desde la aplicación.
-          </p>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal incidencias</title>
+</head>
 
-        <form id="incidencia-form" class="space-y-4">
-          <div class="grid gap-4 md:grid-cols-2">
-            <div>
-              <label for="nombre" class="mb-1 block text-sm font-medium">Nombre completo *</label>
-              <input
-                id="nombre"
-                name="nombre"
-                type="text"
-                required
-                class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
-              />
-            </div>
+<body class="min-h-screen bg-slate-100">
 
-            <div>
-              <label for="email" class="mb-1 block text-sm font-medium">Email corporativo *</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
-              />
-            </div>
-          </div>
+<main class="px-4 py-10">
+<div class="mx-auto max-w-3xl bg-white p-6 rounded-xl">
 
-          <div class="grid gap-4 md:grid-cols-2">
-            <div>
-              <label for="telefono" class="mb-1 block text-sm font-medium">Teléfono de contacto</label>
-              <input
-                id="telefono"
-                name="telefono"
-                type="text"
-                class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
-              />
-            </div>
+<h1 class="text-2xl font-bold">Portal incidencias</h1>
 
-            <div>
-              <label for="departamento" class="mb-1 block text-sm font-medium">Departamento</label>
-              <input
-                id="departamento"
-                name="departamento"
-                type="text"
-                class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
-              />
-            </div>
-          </div>
+<p class="text-sm text-amber-700 mt-2">
+* Si tu incidencia es con Quantum o con a3, abre ticket desde la aplicación
+</p>
 
-          <div>
-            <label for="tipo" class="mb-1 block text-sm font-medium">Tipo de incidencia *</label>
-            <select
-              id="tipo"
-              name="tipo"
-              required
-              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
-            >
-              <option value="">Selecciona una opción</option>
-              {tipos.map((tipo) => (
-                <option value={tipo.value}>{tipo.label}</option>
-              ))}
-            </select>
-          </div>
+<form id="incidencia-form" class="space-y-4 mt-6">
 
-          <div>
-            <label for="prioridad" class="mb-1 block text-sm font-medium">Prioridad</label>
-            <select
-              id="prioridad"
-              name="prioridad"
-              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
-            >
-              {prioridades.map((prioridad) => (
-                <option value={prioridad}>{prioridad}</option>
-              ))}
-            </select>
-          </div>
+<input id="nombre" name="nombre" readonly class="input"/>
+<input id="email" name="email" readonly class="input"/>
 
-          <div>
-            <label for="anydesk" class="mb-1 block text-sm font-medium">Número de AnyDesk</label>
-            <input
-              id="anydesk"
-              name="anydesk"
-              type="text"
-              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
-            />
-          </div>
+<input id="telefono" name="telefono" placeholder="Teléfono" class="input"/>
+<input id="departamento" name="departamento" placeholder="Departamento" class="input"/>
 
-          <div>
-            <label for="asunto" class="mb-1 block text-sm font-medium">Asunto *</label>
-            <input
-              id="asunto"
-              name="asunto"
-              type="text"
-              required
-              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
-            />
-          </div>
+<select id="tipo" name="tipo" required class="input">
+<option value="">Selecciona</option>
+{tipos.map(t => <option value={t.value}>{t.label}</option>)}
+</select>
 
-          <div>
-            <label for="descripcion" class="mb-1 block text-sm font-medium">Descripción *</label>
-            <textarea
-              id="descripcion"
-              name="descripcion"
-              required
-              rows="7"
-              class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
-            ></textarea>
-          </div>
+<select id="prioridad" name="prioridad" class="input">
+{prioridades.map(p => <option>{p}</option>)}
+</select>
 
-          <div class="flex items-center gap-2">
-            <input
-              id="colectiva"
-              name="colectiva"
-              type="checkbox"
-              class="h-4 w-4"
-            />
-            <label for="colectiva" class="text-sm font-medium">
-              Incidencia colectiva
-            </label>
-          </div>
+<input id="anydesk" name="anydesk" placeholder="AnyDesk" class="input"/>
 
-          <div class="hidden">
-            <label for="website">Website</label>
-            <input id="website" name="website" type="text" autocomplete="off" />
-          </div>
+<input id="asunto" name="asunto" placeholder="Asunto" required class="input"/>
 
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <button
-              id="btn-enviar"
-              type="submit"
-              class="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Enviar incidencia
-            </button>
+<textarea id="descripcion" name="descripcion" required class="input"></textarea>
 
-            <p id="estado" class="text-sm"></p>
-          </div>
-        </form>
-      </div>
-    </main>
+<button id="btn-enviar">Enviar</button>
 
-    <script is:inline>
-      const form = document.getElementById("incidencia-form");
-      const estado = document.getElementById("estado");
-      const boton = document.getElementById("btn-enviar");
+<p id="estado"></p>
 
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
+</form>
+</div>
+</main>
 
-        estado.textContent = "";
-        estado.className = "text-sm";
-        boton.disabled = true;
-        boton.textContent = "Enviando...";
+<!-- SDK BITRIX -->
+<script src="https://api.bitrix24.com/api/v1/"></script>
 
-        const formData = new FormData(form);
+<script is:inline>
 
-        const payload = {
-          nombre: formData.get("nombre"),
-          email: formData.get("email"),
-          telefono: formData.get("telefono"),
-          departamento: formData.get("departamento"),
-          tipo: formData.get("tipo"),
-          prioridad: formData.get("prioridad"),
-          asunto: formData.get("asunto"),
-          descripcion: formData.get("descripcion"),
-          anydesk: formData.get("anydesk"),
-          colectiva: formData.get("colectiva") === "on",
-          website: formData.get("website"),
-        };
+const estado = document.getElementById("estado");
+const boton = document.getElementById("btn-enviar");
 
-        try {
-          const res = await fetch("/api/incidencia", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          });
+// 🔐 INIT BITRIX
+BX24.init(async function () {
 
-          const data = await res.json();
+  try {
+    // 👤 obtener usuario
+    BX24.callMethod('user.current', async function(res){
 
-          if (!res.ok || !data.ok) {
-            throw new Error(data.error || "No se pudo enviar la incidencia.");
-          }
+      if(res.error()){
+        estado.textContent = "Error obteniendo usuario Bitrix";
+        return;
+      }
 
-          estado.textContent = `Incidencia enviada correctamente. ID: ${data.ticketId}`;
-          estado.className = "text-sm text-green-700";
-          form.reset();
-        } catch (error) {
-          estado.textContent = error?.message || "Error al enviar la incidencia.";
-          estado.className = "text-sm text-red-700";
-        } finally {
-          boton.disabled = false;
-          boton.textContent = "Enviar incidencia";
-        }
+      const user = res.data();
+
+      // autofill
+      document.getElementById("nombre").value =
+        `${user.NAME} ${user.LAST_NAME}`;
+
+      document.getElementById("email").value = user.EMAIL;
+
+      // 🔐 crear sesión backend
+      await fetch("/api/bitrix-auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          nombre: `${user.NAME} ${user.LAST_NAME}`,
+          email: user.EMAIL
+        })
       });
-    </script>
-  </body>
+
+    });
+
+  } catch(e){
+    estado.textContent = "No estás dentro de Bitrix";
+  }
+
+});
+
+
+// 🚀 envío form
+document.getElementById("incidencia-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  boton.disabled = true;
+
+  const formData = new FormData(e.target);
+
+  const payload = Object.fromEntries(formData.entries());
+  payload.colectiva = formData.get("colectiva") === "on";
+
+  try {
+    const res = await fetch("/api/incidencia", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if(!data.ok) throw new Error(data.error);
+
+    estado.textContent = "OK ID: " + data.ticketId;
+
+  } catch(err){
+    estado.textContent = err.message;
+  }
+
+  boton.disabled = false;
+});
+
+</script>
+
+</body>
 </html>
