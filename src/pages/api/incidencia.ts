@@ -81,6 +81,16 @@ const BITRIX_ENUMS_PRIORIDAD: Record<string, string> = {
   alta: "4791",
 };
 
+const EMAIL_INTRO_TEXT = `Buenos días,
+
+Les notificamos la siguiente incidencia por la que solicitamos su asistencia:
+`;
+
+const EMAIL_INTRO_HTML = `
+  <p>Buenos días,</p>
+  <p>Les notificamos la siguiente incidencia por la que solicitamos su asistencia:</p>
+`;
+
 function generarTicketId(): string {
   const fecha = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   const random = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -326,8 +336,7 @@ export const POST: APIRoute = async ({ request }) => {
     const subject = `${colectiva ? "[COLECTIVA] " : ""}[${ticketId}] ${asunto}`;
 
     const text = `
-Nueva incidencia recibida
-
+${EMAIL_INTRO_TEXT}
 ID: ${ticketId}
 Nombre: ${nombre}
 Email: ${email}
@@ -347,6 +356,7 @@ ${descripcion}
 
     const html = `
       <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+        ${EMAIL_INTRO_HTML}
         <h2>Nueva incidencia recibida</h2>
         ${colectiva ? `<p style="color:#b91c1c; font-weight:bold;">⚠ Incidencia colectiva</p>` : ""}
         <p><strong>ID:</strong> ${ticketId}</p>
