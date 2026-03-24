@@ -25,6 +25,7 @@ type Env = {
   SUPPORT_REDES?: string;
   SUPPORT_CONFIG_USUARIO?: string;
   SUPPORT_REMOTO?: string;
+  SUPPORT_UBYQUO?: string;
   ALLOWED_EMAIL_DOMAIN?: string;
   INTERNAL_REVIEWER_EMAIL?: string;
   SMTP_HOST?: string;
@@ -46,6 +47,7 @@ const SUPPORT_MAP: Record<string, string | undefined> = {
   redes: env.SUPPORT_REDES,
   config_usuario: env.SUPPORT_CONFIG_USUARIO,
   remoto: env.SUPPORT_REMOTO,
+  ubyquo: env.SUPPORT_UBYQUO,
 };
 
 const BITRIX_FIELDS = {
@@ -70,6 +72,7 @@ const BITRIX_ENUMS_TIPO: Record<string, string> = {
   redes: "4786",
   config_usuario: "4787",
   remoto: "4788",
+  ubyquo: "4805",
 };
 
 const BITRIX_ENUMS_PRIORIDAD: Record<string, string> = {
